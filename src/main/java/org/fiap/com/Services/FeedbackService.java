@@ -6,8 +6,6 @@ import org.fiap.com.Repositories.FeedbackRepository;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-
-import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
@@ -19,7 +17,6 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @ApplicationScoped
 public class FeedbackService {
-
 
    @Inject
    FeedbackRepository repository;
