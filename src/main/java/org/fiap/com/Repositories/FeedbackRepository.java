@@ -1,17 +1,24 @@
 package org.fiap.com.Repositories;
 
 import org.fiap.com.Models.Feedback;
-import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @ApplicationScoped
-public class FeedbackRepository implements PanacheRepository<Feedback> {
+public class FeedbackRepository {
 
     public List<Feedback> buscarPorData(LocalDate inicio, LocalDate fim) {
-        return list("dataPublicacao BETWEEN ?1 AND ?2", inicio, fim);
+        List<Feedback> feedbacks = new ArrayList<>();
+
+        feedbacks.add(new Feedback(8, "Comentário exemplo dentro do período"));
+        feedbacks.add(new Feedback(10, "Outro comentário de teste"));
+
+        System.out.println("⚠️ [FAKE] Retornando lista mockada de feedbacks entre " + inicio + " e " + fim);
+
+        return feedbacks;
     }
 
     public double calcularMediaPorData(LocalDate inicio, LocalDate fim) {
@@ -22,5 +29,4 @@ public class FeedbackRepository implements PanacheRepository<Feedback> {
                 .average()
                 .orElse(0.0);
     }
-
 }

@@ -5,7 +5,6 @@ import org.fiap.com.Models.Feedback;
 import org.fiap.com.Repositories.FeedbackRepository;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
@@ -18,15 +17,18 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 @ApplicationScoped
 public class FeedbackService {
 
-   @Inject
-   FeedbackRepository repository;
+    private final FeedbackRepository repository = new FeedbackRepository();
+    private final S3Client s3Client = S3Client.create();
 
-   S3Client s3Client;
 
    private final String bucket = "corp-feedback-relatorios-sem";
 
-   public Map<String, Object> sumarizarPorNotas(LocalDate inicio, LocalDate fim) {
+    public Map<String, Object> sumarizarPorNotas(LocalDate inicio, LocalDate fim) {
+        System.out.println("🔍 Iniciando sumarização de feedbacks...");
+        System.out.println("📅 Intervalo: " + inicio + " até " + fim);
+
         List<Feedback> feedbacks = repository.buscarPorData(inicio, fim);
+        System.out.println("📦 Feedbacks encontrados: " + feedbacks.size());
 
         Map<String, List<String>> grupos = new HashMap<>();
         grupos.put("[0-6]", new ArrayList<>());
@@ -37,13 +39,14 @@ public class FeedbackService {
         int contador = 0;
 
         for (Feedback f : feedbacks) {
-            if (f.getNota() == null) continue;
+            if (f.getNota() == null) {
+                System.out.println("⚠️ Feedback sem nota ignorado: " + f.getComentario());
+                continue;
+            }
 
-            // Soma para cálculo da média
             soma += f.getNota();
             contador++;
 
-            // Agrupa comentários por faixa
             if (f.getNota() <= 6) {
                 grupos.get("[0-6]").add(f.getComentario());
             } else if (f.getNota() <= 8) {
@@ -51,21 +54,26 @@ public class FeedbackService {
             } else {
                 grupos.get("[9-10]").add(f.getComentario());
             }
+
+            System.out.println("📝 Nota: " + f.getNota() + " | Comentário: " + f.getComentario());
         }
 
         double media = contador > 0 ? soma / contador : 0.0;
+        System.out.println("📊 Média calculada: " + media);
 
-        // Gera o CSV com média no final
         gerarCsv(grupos, inicio, fim, media);
 
+        System.out.println("✅ Sumarização concluída.");
+
         return Map.of(
-            "dataInicio", inicio,
-            "dataFim", fim,
-            "quantidadeTotal", feedbacks.size(),
-            "mediaSemanal", media,
-            "comentariosAgrupados", grupos
+                "dataInicio", inicio,
+                "dataFim", fim,
+                "quantidadeTotal", feedbacks.size(),
+                "mediaSemanal", media,
+                "comentariosAgrupados", grupos
         );
     }
+
 
     private void gerarCsv(Map<String, List<String>> grupos, LocalDate inicio, LocalDate fim, double media) {
         String nomeArquivo = String.format("relatorio-feedback-%s-a-%s.csv", inicio, fim);

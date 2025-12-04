@@ -1,15 +1,15 @@
 package org.fiap.com.Models;
 
 import lombok.Data;
-import jakarta.persistence.*;
+//import jakarta.persistence.*;
 
 import java.time.LocalDate;
 
-@Entity
+//@Entity
 @Data
 public class Feedback {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+//    @Id
+//    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private Long cursoId;
@@ -20,8 +20,16 @@ public class Feedback {
     private Boolean anonimo;
     private LocalDate dataPublicacao;
 
-    @PrePersist
-    public void prePersist() {
+//    @PrePersist
+//    public void prePersist() {
+//        this.dataPublicacao = LocalDate.now();
+//    }
+
+    public Feedback(Integer nota, String comentario) {
+        this.nota = nota;
+        this.comentario = comentario;
         this.dataPublicacao = LocalDate.now();
     }
+
+    public Feedback() {}
 }
