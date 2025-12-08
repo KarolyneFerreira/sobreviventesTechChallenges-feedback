@@ -11,6 +11,7 @@ import java.util.*;
 
 import com.opencsv.CSVWriter;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
@@ -18,8 +19,13 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 public class FeedbackService {
 
     private final FeedbackRepository repository = new FeedbackRepository();
-    private final S3Client s3Client = S3Client.create();
+    private final S3Client s3Client;
 
+    public FeedbackService() {
+        this.s3Client = S3Client.builder()
+                .region(Region.US_EAST_1)
+                .build();
+    }
 
    private final String bucket = "corp-feedback-relatorios-sem";
 
@@ -74,6 +80,28 @@ public class FeedbackService {
         );
     }
 
+    public void testarConexaoS3() {
+        try {
+            String testeKey = "lambda-teste-conexao.txt";
+            String conteudo = "Teste de conexão com S3 via Lambda";
+
+            s3Client.putObject(
+                    PutObjectRequest.builder()
+                            .bucket(bucket)
+                            .key(testeKey)
+                            .build(),
+                    RequestBody.fromString(conteudo)
+            );
+
+            System.out.println("✅ Conexão com S3 funcionando! Arquivo de teste enviado: " + testeKey);
+        } catch (Exception e) {
+            System.out.println("❌ Erro ao acessar S3: " + e.getMessage());
+        }
+    }
+
+    public FeedbackRepository getRepository() {
+        return repository;
+    }
 
     private void gerarCsv(Map<String, List<String>> grupos, LocalDate inicio, LocalDate fim, double media) {
         String nomeArquivo = String.format("relatorio-feedback-%s-a-%s.csv", inicio, fim);
@@ -99,6 +127,7 @@ public class FeedbackService {
 
             writer.close();
 
+            System.out.println("Antes do upload no S3...");
             // Envia CSV para S3
             s3Client.putObject(
                     PutObjectRequest.builder()
@@ -107,6 +136,7 @@ public class FeedbackService {
                             .build(),
                     RequestBody.fromString(sw.toString())
             );
+            System.out.println("Depois do upload no S3...");
 
             System.out.println("✅ CSV enviado para S3 com sucesso: " + nomeArquivo);
 
