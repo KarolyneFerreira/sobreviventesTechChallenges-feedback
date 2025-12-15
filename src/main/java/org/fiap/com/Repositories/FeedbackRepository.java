@@ -1,8 +1,10 @@
 package org.fiap.com.Repositories;
 
-import org.fiap.com.Models.Feedback;
 import jakarta.enterprise.context.ApplicationScoped;
+import org.fiap.com.Dto.FeedbackResponse;
+import org.jboss.logging.Logger;
 
+import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,112 +12,59 @@ import java.util.List;
 @ApplicationScoped
 public class FeedbackRepository {
 
-    public List<Feedback> buscarPorData(LocalDate inicio, LocalDate fim) {
-        List<Feedback> feedbacks = new ArrayList<>();
+    private static final Logger LOG = Logger.getLogger(FeedbackRepository.class);
 
-        feedbacks.add(new Feedback(8, "Comentário exemplo dentro do período"));
-        feedbacks.add(new Feedback(10, "Outro comentário de teste"));
+    private static final String URL =
+            "jdbc:postgresql://feedback-service.cx6ycoocwna7.us-east-2.rds.amazonaws.com:5432/postgres?sslmode=require";
 
-        System.out.println("⚠️ [FAKE] Retornando lista mockada de feedbacks entre " + inicio + " e " + fim);
+    private static final String USER = "postgres";
+    private static final String PASSWORD = "postgres";
+
+    // 🔥 BUSCA REAL POR INTERVALO
+    public List<FeedbackResponse> buscarPorIntervalo(LocalDate inicio, LocalDate fim) {
+
+        List<FeedbackResponse> feedbacks = new ArrayList<>();
+
+        String sql = """
+            SELECT nota, comentario, data_criacao
+            FROM feedbacks
+            WHERE data_criacao BETWEEN ? AND ?
+            ORDER BY data_criacao
+        """;
+
+        LOG.infof("🧾 SQL: %s", sql);
+        LOG.infof("📅 Intervalo: %s -> %s", inicio, fim);
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setTimestamp(1, Timestamp.valueOf(inicio.atStartOfDay()));
+            stmt.setTimestamp(2, Timestamp.valueOf(fim.plusDays(1).atStartOfDay()));
+
+            try (ResultSet rs = stmt.executeQuery()) {
+
+                int count = 0;
+
+                while (rs.next()) {
+                    count++;
+
+                    feedbacks.add(
+                            new FeedbackResponse(
+                                    rs.getInt("nota"),
+                                    rs.getString("comentario"),
+                                    rs.getTimestamp("data_criacao").toLocalDateTime()
+                            )
+                    );
+                }
+
+                LOG.infof("📊 Total retornado do banco: %d", count);
+            }
+
+        } catch (SQLException e) {
+            LOG.error("❌ Erro ao consultar feedbacks no RDS", e);
+            throw new RuntimeException(e);
+        }
 
         return feedbacks;
     }
-
-    public double calcularMediaPorData(LocalDate inicio, LocalDate fim) {
-        List<Feedback> feedbacks = buscarPorData(inicio, fim);
-
-        return feedbacks.stream()
-                .mapToInt(Feedback::getNota)
-                .average()
-                .orElse(0.0);
-    }
-
-    public void listarTabelas() {
-        String url = "jdbc:postgresql://agendamento-db.cfy4w0m60ie2.us-east-1.rds.amazonaws.com:5432/agendamento";
-        String usuario = "postgres";
-        String senha = "postgres";
-
-        String sql = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'";
-
-        try (java.sql.Connection conn = java.sql.DriverManager.getConnection(url, usuario, senha);
-             java.sql.PreparedStatement stmt = conn.prepareStatement(sql);
-             java.sql.ResultSet rs = stmt.executeQuery()) {
-
-            System.out.println("✅ Tabelas encontradas no schema 'public':");
-
-            while (rs.next()) {
-                System.out.println("📌 " + rs.getString("table_name"));
-            }
-
-        } catch (Exception e) {
-            System.out.println("❌ Erro ao listar tabelas: " + e.getMessage());
-        }
-    }
-
-    public void testarSelect(String tabela) {
-        String url = "jdbc:postgresql://agendamento-db.cfy4w0m60ie2.us-east-1.rds.amazonaws.com:5432/agendamento";
-        String usuario = "postgres";
-        String senha = "postgres";
-
-        String sql = "SELECT * FROM " + tabela + " LIMIT 5";
-
-        try (java.sql.Connection conn = java.sql.DriverManager.getConnection(url, usuario, senha);
-             java.sql.PreparedStatement stmt = conn.prepareStatement(sql);
-             java.sql.ResultSet rs = stmt.executeQuery()) {
-
-            System.out.println("✅ SELECT na tabela '" + tabela + "' retornou:");
-
-            int colunas = rs.getMetaData().getColumnCount();
-
-            while (rs.next()) {
-                StringBuilder linha = new StringBuilder("➡ ");
-                for (int i = 1; i <= colunas; i++) {
-                    linha.append(rs.getMetaData().getColumnName(i))
-                            .append("=")
-                            .append(rs.getString(i))
-                            .append(" ");
-                }
-                System.out.println(linha);
-            }
-
-        } catch (Exception e) {
-            System.out.println("❌ Erro ao consultar tabela '" + tabela + "': " + e.getMessage());
-        }
-    }
-
-    public void listarSchemas() {
-        String url = "jdbc:postgresql://agendamento-db.cfy4w0m60ie2.us-east-1.rds.amazonaws.com:5432/agendamento";
-        String usuario = "postgres";
-        String senha = "postgres";
-
-        String sql = "SELECT schema_name FROM information_schema.schemata";
-
-        try (java.sql.Connection conn = java.sql.DriverManager.getConnection(url, usuario, senha);
-             java.sql.PreparedStatement stmt = conn.prepareStatement(sql);
-             java.sql.ResultSet rs = stmt.executeQuery()) {
-
-            System.out.println("✅ Schemas encontrados:");
-
-            while (rs.next()) {
-                System.out.println("📌 " + rs.getString("schema_name"));
-            }
-
-        } catch (Exception e) {
-            System.out.println("❌ Erro ao listar schemas: " + e.getMessage());
-        }
-    }
-
-
-    public void testarConexaoRDS() {
-        String url = "jdbc:postgresql://agendamento-db.cfy4w0m60ie2.us-east-1.rds.amazonaws.com:5432/agendamento";
-        String usuario = "postgres";
-        String senha = "postgres";
-
-        try (java.sql.Connection conn = java.sql.DriverManager.getConnection(url, usuario, senha)) {
-            System.out.println("✅ Conexão com RDS estabelecida com sucesso!");
-        } catch (Exception e) {
-            System.out.println("❌ Erro ao conectar com RDS: " + e.getMessage());
-        }
-    }
-
 }

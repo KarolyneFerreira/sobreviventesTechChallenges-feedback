@@ -2,48 +2,36 @@ package org.fiap.com;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.fiap.com.Services.FeedbackService;
+import org.jboss.logging.Logger;
 
 import java.time.LocalDate;
-import java.util.Map;
 
-public class LambdaHandler implements RequestHandler<Map<String, Object>, Map<String, Object>> {
+@ApplicationScoped
+public class LambdaHandler implements RequestHandler<Object, String> {
 
-    private final FeedbackService service = new FeedbackService();
+    private static final Logger LOG = Logger.getLogger(LambdaHandler.class);
 
-//    @Override
-//    public Map<String, Object> handleRequest(Map<String, Object> input, Context context) {
-//        LocalDate inicio = LocalDate.parse((String) input.get("inicio"));
-//        LocalDate fim = LocalDate.parse((String) input.get("fim"));
-//        return service.sumarizarPorNotas(inicio, fim);
-//    }
-
-//    @Override
-//    public Map<String, Object> handleRequest(Map<String, Object> input, Context context) {
-//        LocalDate inicio = LocalDate.parse((String) input.get("inicio"));
-//        LocalDate fim = LocalDate.parse((String) input.get("fim"));
-//
-//        // Testes de conectividade
-//        service.testarConexaoS3();
-//        service.getRepository().testarConexaoRDS();
-//
-//        return service.sumarizarPorNotas(inicio, fim);
-//    }
+    @Inject
+    FeedbackService service;
 
     @Override
-    public Map<String, Object> handleRequest(Map<String, Object> input, Context context) {
-        LocalDate inicio = LocalDate.parse((String) input.get("inicio"));
-        LocalDate fim = LocalDate.parse((String) input.get("fim"));
+    public String handleRequest(Object input, Context context) {
 
-        // Testes
-        service.getRepository().listarTabelas();
-        service.getRepository().listarSchemas();
-//        service.getRepository().testarSelect("nome_da_tabela");
+        LOG.info("🚀 Lambda acionada pelo EventBridge");
+        LOG.infof("📥 Payload recebido: %s", input);
 
-        return service.sumarizarPorNotas(inicio, fim);
+        LocalDate fim = LocalDate.now();
+        LocalDate inicio = fim.minusDays(7);
+
+        LOG.infof("📅 Intervalo de busca -> Início: %s | Fim: %s", inicio, fim);
+
+        service.gerarCsvSemanal(inicio, fim);
+
+        LOG.info("✅ Execução da Lambda finalizada com sucesso");
+
+        return "OK";
     }
-
-
 }
-
-
