@@ -87,6 +87,29 @@
             <artifactId>opencsv</artifactId>
             <version>5.9</version>
         </dependency>
+        <!-- JUnit 5 (já vem em muitos projetos Quarkus, mas garanta que está presente) -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.10.0</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- Mockito Core -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>5.11.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Mockito JUnit Jupiter (para usar @Mock, @InjectMocks e MockitoAnnotations com JUnit 5) -->
+        <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-junit-jupiter</artifactId>
+        <version>5.11.0</version>
+        <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
