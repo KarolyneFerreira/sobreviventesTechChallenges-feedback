@@ -1,4 +1,3 @@
-<img width="390" height="701" alt="image" src="https://github.com/user-attachments/assets/e7b1bce4-1590-48c1-908a-f51211f9c80a" /># lambda-quarkus
 
 # Arquitetura do Projeto
 
