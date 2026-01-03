@@ -1,4 +1,4 @@
-# lambda-quarkus
+<img width="390" height="701" alt="image" src="https://github.com/user-attachments/assets/e7b1bce4-1590-48c1-908a-f51211f9c80a" /># lambda-quarkus
 
 # Arquitetura do Projeto
 
@@ -17,6 +17,23 @@ O sistema tem como finalidade:
 - Panache Repository: abstração para consultas JPA simplificadas.
 - AWS SDK v2: integração com o serviço S3 para upload dos relatórios.
 - OpenCSV: biblioteca utilizada para geração de arquivos CSV.
+
+## Estrutura de Arquitetura
+
+src/
+├── principal/
+│   └── docker/
+│       ├── Dockerfile.jvm
+│       ├── Dockerfile.legacy-jar
+│       ├── Dockerfile.native
+│       └── Dockerfile.native-micro
+├── java/org/fiap/com/
+│       ├── Models/
+│       │   └── Feedback.java   Define a entidade principal do sistema, representando dados de feedback.
+│       ├── Repositories/
+│       │   └── FeedbackRepository.java    Interface de acesso a dados
+│       └── Services/
+│           └── FeedbackService.java    Camada de lógica de negócios, responsável por processar e gerenciar operações relacionadas ao feedback.
   
 ## Fluxo de Execução
 - Usuário insere feedbacks no sistema (persistidos no RDS).
