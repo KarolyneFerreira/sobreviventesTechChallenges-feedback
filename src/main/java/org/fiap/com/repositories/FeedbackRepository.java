@@ -1,7 +1,10 @@
-package org.fiap.com.Repositories;
+package org.fiap.com.repositories;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import org.fiap.com.Dto.FeedbackResponse;
+import jakarta.inject.Inject;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.fiap.com.dto.FeedbackResponse;
+import org.fiap.com.exception.FeedbackNotFoundException;
 import org.jboss.logging.Logger;
 
 import java.sql.*;
@@ -14,13 +17,20 @@ public class FeedbackRepository {
 
     private static final Logger LOG = Logger.getLogger(FeedbackRepository.class);
 
-    private static final String URL =
-            "jdbc:postgresql://feedback-service.cx6ycoocwna7.us-east-2.rds.amazonaws.com:5432/postgres?sslmode=require";
+    private final String url;
+    private final String user;
+    private final String password;
 
-    private static final String USER = "postgres";
-    private static final String PASSWORD = "postgres";
+    @Inject
+    public FeedbackRepository(
+            @ConfigProperty(name = "db.url") String url,
+            @ConfigProperty(name = "db.user") String user,
+            @ConfigProperty(name = "db.password") String password) {
+        this.url = url;
+        this.user = user;
+        this.password = password;
+    }
 
-    // 🔥 BUSCA REAL POR INTERVALO
     public List<FeedbackResponse> buscarPorIntervalo(LocalDate inicio, LocalDate fim) {
 
         List<FeedbackResponse> feedbacks = new ArrayList<>();
@@ -35,7 +45,7 @@ public class FeedbackRepository {
         LOG.infof("🧾 SQL: %s", sql);
         LOG.infof("📅 Intervalo: %s -> %s", inicio, fim);
 
-        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+        try (Connection conn = DriverManager.getConnection(url, user, password);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setTimestamp(1, Timestamp.valueOf(inicio.atStartOfDay()));
@@ -62,7 +72,7 @@ public class FeedbackRepository {
 
         } catch (SQLException e) {
             LOG.error("❌ Erro ao consultar feedbacks no RDS", e);
-            throw new RuntimeException(e);
+            throw new FeedbackNotFoundException("❌ Erro ao consultar feedbacks no RDS");
         }
 
         return feedbacks;

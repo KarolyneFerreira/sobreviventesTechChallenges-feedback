@@ -1,9 +1,10 @@
-package org.fiap.com.Services;
+package org.fiap.com.services;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.fiap.com.Dto.FeedbackResponse;
-import org.fiap.com.Repositories.FeedbackRepository;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.fiap.com.dto.FeedbackResponse;
+import org.fiap.com.repositories.FeedbackRepository;
 import org.jboss.logging.Logger;
 
 import com.opencsv.CSVWriter;
@@ -20,16 +21,18 @@ import java.util.Locale;
 public class FeedbackService {
 
     private static final Logger LOG = Logger.getLogger(FeedbackService.class);
-
-    private static final String BUCKET = "corp-feedback-relatorios";
-
-    @Inject
-    FeedbackRepository repository;
+    private final String bucketName;
+    private final FeedbackRepository repository;
+    private final S3Client s3Client;
 
     @Inject
-    S3Client s3Client;
+    public FeedbackService(@ConfigProperty(name = "s3.bucket.name") String bucketName, FeedbackRepository repository, S3Client s3Client) {
+        this.bucketName = bucketName;
+        this.repository = repository;
+        this.s3Client = s3Client;
+    }
 
-    public String gerarCsvSemanal(LocalDate inicio, LocalDate fim) {
+    public void gerarCsvSemanal(LocalDate inicio, LocalDate fim) {
 
         LOG.info("🔍 Buscando feedbacks reais no RDS");
 
@@ -70,13 +73,11 @@ public class FeedbackService {
 
             s3Client.putObject(
                     PutObjectRequest.builder()
-                            .bucket(BUCKET)
+                            .bucket(bucketName)
                             .key(nomeArquivo)
                             .build(),
                     RequestBody.fromString(sw.toString())
             );
-
-            return nomeArquivo;
 
         } catch (IOException e) {
             LOG.error("❌ Erro ao gerar CSV", e);

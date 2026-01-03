@@ -4,7 +4,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.fiap.com.Services.FeedbackService;
+import org.fiap.com.services.FeedbackService;
 import org.jboss.logging.Logger;
 
 import java.time.DayOfWeek;
@@ -16,8 +16,12 @@ public class LambdaHandler implements RequestHandler<Object, String> {
 
     private static final Logger LOG = Logger.getLogger(LambdaHandler.class);
 
+    private final FeedbackService service;
+
     @Inject
-    FeedbackService service;
+    public LambdaHandler(FeedbackService service){
+        this.service = service;
+    }
 
     @Override
     public String handleRequest(Object input, Context context) {
