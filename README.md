@@ -19,20 +19,20 @@ O sistema tem como finalidade:
 
 ## Estrutura de Arquitetura
 
-src/<br> 
-├── principal/<br> 
-│   └── docker/<br> 
-│       ├── Dockerfile.jvm<br> 
-│       ├── Dockerfile.legacy-jar<br> 
-│       ├── Dockerfile.native<br> 
-│       └── Dockerfile.native-micro<br> 
-├── java/org/fiap/com/<br> 
-│       ├── Models/<br> 
-│       │   └── Feedback.java   Define a entidade principal do sistema, representando dados de feedback.<br> 
-│       ├── Repositories/<br> 
-│       │   └── FeedbackRepository.java    Interface de acesso a dados<br> 
-│       └── Services/<br> 
-│           └── FeedbackService.java    Camada de lógica de negócios, responsável por processar e gerenciar operações relacionadas ao feedback.<br> 
+src/<br>
+├── principal/<br>
+│   └── docker/<br>
+│       ├── Dockerfile.jvm<br>
+│       ├── Dockerfile.legacy-jar<br>
+│       ├── Dockerfile.native<br>
+│       └── Dockerfile.native-micro<br>
+├── java/org/fiap/com/<br>
+│       ├── Models/<br>
+│       │   └── Feedback.java   Define a entidade principal do sistema, representando dados de feedback.<br>
+│       ├── Repositories/<br>
+│       │   └── FeedbackRepository.java    Interface de acesso a dados<br>
+│       └── Services/<br>
+│           └── FeedbackService.java    Camada de lógica de negócios, responsável por processar e gerenciar operações relacionadas ao feedback.<br>
 
   
 ## Fluxo de Execução
