@@ -1,62 +1,92 @@
-# lambda-quarkus
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+# Arquitetura do Projeto
 
-If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
+## Objetivo
 
-## Running the application in dev mode
+O sistema tem como finalidade:
+- Conectar-se a um banco de dados Amazon RDS (Relational Database Service) hospedado na AWS.
+- Consultar registros de Feedback inseridos na última semana.
+- Processar e agrupar os dados por faixa de notas.
+- Calcular a média semanal.
+- Gerar um relatório CSV e armazená-lo em um bucket Amazon S3.
+  
+## Componentes Principais
+- Quarkus Framework: fornece suporte nativo para aplicações Java com baixo tempo de inicialização e integração com JPA/Hibernate.
+- Banco de Dados RDS (AWS): armazena os registros de feedback.
+- Panache Repository: abstração para consultas JPA simplificadas.
+- AWS SDK v2: integração com o serviço S3 para upload dos relatórios.
+- OpenCSV: biblioteca utilizada para geração de arquivos CSV.
 
-You can run your application in dev mode that enables live coding using:
+## Estrutura de Arquitetura
+
+src/<br>
+├── principal/<br>
+│   └── docker/<br>
+│       ├── Dockerfile.jvm<br>
+│       ├── Dockerfile.legacy-jar<br>
+│       ├── Dockerfile.native<br>
+│       └── Dockerfile.native-micro<br>
+├── java/org/fiap/com/<br>
+│       ├── Models/<br>
+│       │   └── Feedback.java   Define a entidade principal do sistema, representando dados de feedback.<br>
+│       ├── Repositories/<br>
+│       │   └── FeedbackRepository.java    Interface de acesso a dados<br>
+│       └── Services/<br>
+│           └── FeedbackService.java    Camada de lógica de negócios, responsável por processar e gerenciar operações relacionadas ao feedback.<br>
+
+  
+## Fluxo de Execução
+- Usuário insere feedbacks no sistema (persistidos no RDS).
+- Serviço FeedbackService consulta os dados da última semana via FeedbackRepository.
+- Os feedbacks são agrupados por faixa de notas e a média semanal é calculada.
+- Um arquivo CSV é gerado em memória.
+- O arquivo é enviado para o bucket S3 configurado
+
+
+
+## Executando a aplicação em modo de desenvolvimento
+
+Você pode rodar sua aplicação em modo de desenvolvimento, que habilita live coding, usando:
 
 ```shell script
 ./mvnw quarkus:dev
 ```
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
+> **_NOTE:_**  O Quarkus possui uma Dev UI disponível apenas em modo de desenvolvimento em <http://localhost:8080/q/dev/>.
 
-## Packaging and running the application
+## Empacotando e executando a aplicação
 
-The application can be packaged using:
+A aplicação pode ser empacotada usando:
 
 ```shell script
 ./mvnw package
 ```
 
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
+Isso gera o arquivo `quarkus-run.jar`  no diretório `target/quarkus-app/`.
+Note que não é um _über-jar_ pois as dependências são copiadas para `target/quarkus-app/lib/`.
 
-The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
+A aplicação pode ser executada com: `java -jar target/quarkus-app/quarkus-run.jar`.
 
-If you want to build an _über-jar_, execute the following command:
+Para criar um _über-jar_, execute:
 
 ```shell script
 ./mvnw package -Dquarkus.package.jar.type=uber-jar
 ```
 
-The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
+E rode com: `java -jar target/*-runner.jar`.
 
-## Creating a native executable
+##  Criando um executável nativo
 
-You can create a native executable using:
+Você pode criar um executável nativo usando:
 
 ```shell script
 ./mvnw package -Dnative
 ```
 
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using:
+Ou, se não tiver o GraalVM instalado, pode rodar a build nativa em um container:
 
 ```shell script
 ./mvnw package -Dnative -Dquarkus.native.container-build=true
 ```
 
-You can then execute your native executable with: `./target/lambda-quarkus-1.0.0-SNAPSHOT-runner`
-
-If you want to learn more about building native executables, please consult <https://quarkus.io/guides/maven-tooling>.
-
-## Provided Code
-
-### REST
-
-Easily start your REST Web Services
-
-[Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
+Depois, execute o binário gerado: `./target/lambda-quarkus-1.0.0-SNAPSHOT-runner`
