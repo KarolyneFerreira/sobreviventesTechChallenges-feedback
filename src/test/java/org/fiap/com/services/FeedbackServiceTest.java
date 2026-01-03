@@ -37,7 +37,6 @@ class FeedbackServiceTest {
         inicio = LocalDate.of(2025, 12, 1);
         fim = LocalDate.of(2025, 12, 7);
 
-        // Instancia manualmente o serviço com mocks e bucket fake
         service = new FeedbackService("corp-feedback-relatorios", repository, s3Client);
     }
 

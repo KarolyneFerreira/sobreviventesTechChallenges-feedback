@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 
 public class ApiErrorMessage {
-
     private final HttpStatus status;
     private final Map<String, List<String>> errors;
 

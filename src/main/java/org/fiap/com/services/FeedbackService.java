@@ -4,6 +4,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.fiap.com.dto.FeedbackResponse;
+import org.fiap.com.exception.GenerateCsvErrorException;
 import org.fiap.com.repositories.FeedbackRepository;
 import org.jboss.logging.Logger;
 
@@ -81,7 +82,7 @@ public class FeedbackService {
 
         } catch (IOException e) {
             LOG.error("❌ Erro ao gerar CSV", e);
-            throw new RuntimeException(e);
+            throw new GenerateCsvErrorException("❌ Erro ao gerar CSV");
         }
     }
 }
